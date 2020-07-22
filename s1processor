@@ -31,8 +31,8 @@ class s1processor(processor.ProcessorABC):
                 phi=df['Jet_phi'].content,
                 mass=df['Jet_mass'].content,)
 
-        mayBe = df['Jet_isGoodBJet'].content #is this a flag?Replace flag? #also probs belongs inside jagged array)
-        notB = df['Jet_isGoodJetAll'].content
+        mayBe = df['Jet_isGoodBJet'] #is this a flag?Replace flag? #also probs belongs inside jagged array)
+        notB = df['Jet_isGoodJetAll']
         bcut = (Jets[mayBe]==1)
         bJets = Jets[bcut]
         ocut = ((Jets[mayBe]==0) & (Jets[notB]==1))
