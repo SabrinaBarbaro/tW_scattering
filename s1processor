@@ -29,15 +29,15 @@ class s1processor(processor.ProcessorABC):
                 pt=df['Jet_pt'].content,
                 eta=df['Jet_eta'].content,
                 phi=df['Jet_phi'].content,
-                mass=df['Jet_mass'].content,)
+                mass=df['Jet_mass'].content,
+                mayBe = df['Jet_isGoodBJet'].content,
+                notB = df['Jet_isGoodJetAll'].content,)
 
-        mayBe = df['Jet_isGoodBJet'] #is this a flag?Replace flag? #also probs belongs inside jagged array)
-        notB = df['Jet_isGoodJetAll']
-        bcut = (Jets[mayBe]==1)
+        bcut = (Jets['mayBe']==1)
         bJets = Jets[bcut]
-        ocut = ((Jets[mayBe]==0) & (Jets[notB]==1))
+        ocut = ((Jets['mayBe']==0) & (Jets['notB']==1))
         oJets = Jets[ocut]
-
+        
         #output["sumw"][dataset] += df.size
         output["Jet"].fill(dataset=dataset, mass=oJets.mass.flatten())
         output["b_Jet"].fill(dataset=dataset, bmass=bJets.mass.flatten())
