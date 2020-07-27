@@ -34,9 +34,9 @@ class s1processor(processor.ProcessorABC):
                 notB = df['Jet_isGoodJetAll'].content,)
 
         bcut = (Jets['mayBe']==1)
-        bJets = Jets[bcut]
+        bJets = Jets[bcut].choose(2)
         ocut = ((Jets['mayBe']==0) & (Jets['notB']==1))
-        oJets = Jets[ocut]
+        oJets = Jets[ocut].choose(2)
         
         #output["sumw"][dataset] += df.size
         output["Jet"].fill(dataset=dataset, mass=oJets.mass.flatten())
@@ -102,6 +102,7 @@ def main():
         ax = hist.plot1d(output["b_Jet"],overlay="dataset", stack=True)
         ax.set_yscale('linear')
         ax.figure.savefig(os.path.join(outdir, "{}.pdf".format("b_Jet")))
+        ax.figure.savefig("transferablepic.png")
         ax.clear()
 
            #ax = hist.plot1d(histogram, overlay="dataset", stack=False) 
