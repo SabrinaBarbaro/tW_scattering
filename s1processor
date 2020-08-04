@@ -1,0 +1,207 @@
+#This is a Python file
+#Sabrina Barbaro 24/6/2020
+#Let's try to make a processor
+#First use the skeleton processorABC
+
+from coffea import hist, processor
+from coffea.analysis_objects import JaggedCandidateArray
+
+class s1processor(processor.ProcessorABC):
+    def __init__(self):                              #removed flag bc what is it?
+        self._accumulator = processor.dict_accumulator({
+	    "sumw": processor.defaultdict_accumulator(float),
+            "Jet": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass","InvariantMass (GeV)",100,0,1000)),
+            "b_Jet": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("bmass","InvariantMass (GeV)",100,0,1000)),
+            "bb_max_mass": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass"," Max Mass (GeV)",100,0,1000)),
+            "bb_min_mass": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass"," Min Mass (GeV)",100,0,1000)),
+            "ojet_max_mass": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass"," Max Mass (GeV)",100,0,1000)),
+            "ojet_min_mass": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass"," Min Mass (GeV)",100,0,1000)),
+            "mix_max_mass": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass"," Max Mass (GeV)",100,0,1000)),
+            "mix_min_mass": hist.Hist("#OfEvents", hist.Cat("dataset","NumOfCountsData"), hist.Bin("mass"," Min Mass (GeV)",100,0,1000)),
+        })                                                              #Add whatever variables you want here
+                                                                        #hist.Hist documentation from https://coffeateam.github.io/coffea/api/coffea.hist.Hist.html
+
+    @property                                                           #giving me a numba error, try running in coffea #Which worked
+    def accumulator(self):
+        return self._accumulator
+
+    def process(self, df):
+        output = self.accumulator.identity()
+
+        dataset = df['dataset']
+        #momentum = df['Jet_pt'].content,
+        Jets= JaggedCandidateArray.candidatesfromcounts(
+        	df['nJet'],
+                pt=df['Jet_pt'].content,
+                eta=df['Jet_eta'].content,
+                phi=df['Jet_phi'].content,
+                mass=df['Jet_mass'].content,
+                mayBe = df['Jet_isGoodBJet'].content,
+                notB = df['Jet_isGoodJetAll'].content,)
+        
+        bcut = (Jets['mayBe']==1)
+        bJets = Jets[bcut].choose(2)
+        ocut = ((Jets['mayBe']==0) & (Jets['notB']==1))
+        oJets = Jets[ocut].choose(2)
+        mixJets = bJets.cross(oJets) #bcut.cross(ocut) bJets.cross(oJets)
+        
+        #output["sumw"][dataset] += df.size       
+        output["Jet"].fill(dataset=dataset, mass=oJets.mass.flatten())
+        output["b_Jet"].fill(dataset=dataset, bmass=bJets.mass.flatten())
+
+        output["bb_max_mass"].fill(dataset=dataset, mass= bJets.mass.max())
+        output["bb_min_mass"].fill(dataset=dataset, mass= bJets.mass.min()) #add flatten back?
+        output["ojet_max_mass"].fill(dataset=dataset, mass= oJets.mass.max())
+        output["ojet_min_mass"].fill(dataset=dataset, mass= oJets.mass.min())
+        output["mix_max_mass"] .fill(dataset=dataset, mass= mixJets.mass.max())
+        output["mix_min_mass"].fill(dataset=dataset, mass= mixJets.mass.min())
+
+        return output
+
+    def postprocess(self, accumulator):
+        return accumulator
+
+#That should be all I need for a processor! Seemed more complicated at first, or I'm just so so so wrong
+##new_variable_name = df[variable_name_in_dataframe].content,
+##repeat as needed to define which sets of data you want
+##Make The Data Cuts afterwards
+##I should go back and make some based on min GeV
+#
+#
+#You can have it make the histograms here(outside of the class def) according to daniels code
+#Lets try
+#
+
+
+
+import os
+import time
+import glob
+import re
+from functools import reduce
+from klepto.archives import dir_archive
+
+import numpy as np
+from tqdm.auto import tqdm
+import coffea.processor as processor
+from coffea.processor.accumulator import AccumulatorABC
+from coffea import hist
+import pandas as pd
+import uproot_methods
+import awkward
+
+
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+
+from tW_scattering.Tools.helpers import *
+from klepto.archives import dir_archive
+from tW_scattering.Tools.helpers import *
+
+#
+#Pretty much copying daniel's main() function
+#
+def main():
+
+        overwrite = True
+        # load the config and the cache
+        cfg = loadConfig()
+
+        #Inputs are defined in a dictionary
+        # dataset : list of files
+     
+        fileset = {
+        'tW_scattering': glob.glob("/hadoop/cms/store/user/dspitzba/nanoAOD/ttw_samples/0p1p2/tW_scattering__nanoAOD/merged/*.root"),
+        "TTW":           glob.glob("/hadoop/cms/store/user/dspitzba/nanoAOD/ttw_samples/0p1p2/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8__RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20_ext1-v1/merged/*.root") \
+                        + glob.glob("/hadoop/cms/store/user/dspitzba/nanoAOD/ttw_samples/0p1p2/TTWJetsToQQ_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8__RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/merged/*.root"),
+        }
+
+        histograms = ["Jet", "b_Jet", "bb_max_mass", "bb_min_mass", "ojet_max_mass", "ojet_min_mass", "mix_max_mass", "mix_min_mass"]
+
+        #initialize cache
+        cache = dir_archive(os.path.join(os.path.expandvars(cfg['caches']['base']), cfg['caches']['simpleProcessor']), serialized=True)
+        if not overwrite:
+            cache.load()
+
+        if cfg == cache.get('cfg') and histograms == cache.get('histograms') and fileset == cache.get('fileset') and cache.get('simple_output'):
+            output = cache.get('simple_output')
+        else: 
+         output = processor.run_uproot_job(fileset,
+                                      treename='Events',
+                                      processor_instance=s1processor(),
+                                      executor=processor.futures_executor,
+                                      executor_args={'workers': 12, 'function_args': {'flatten': False}},
+                                      chunksize=500000,
+                                     )
+        cache['fileset']        = fileset
+        cache['cfg']            = cfg
+        cache['histograms']     = histograms
+        cache['simple_output']  = output
+        cache.dump()
+
+        #make plots
+        #outdir = "./tmp_plots"
+        #if not os.path.exists(outdir):
+         #   os.makedirs(outdir)
+
+        
+        ax = hist.plot1d(output["b_Jet"],overlay="dataset", stack=True) 
+        ax.set_yscale('linear') 
+        #ax.figure.savefig(os.path.join(outdir, "{}.pdf".format("b_Jet")))
+        #ax.figure.savefig("BJetMass.png")
+        ax.clear()
+
+        ax = hist.plot1d(output["Jet"],overlay="dataset", stack=True)
+        ax.set_yscale('linear')
+        #ax.figure.savefig(os.path.join(outdir, "{}.pdf".format("b_Jet")))
+        #ax.figure.savefig("OJetMass.png")
+        ax.clear()
+            
+        #return output
+
+if __name__ == "__main__":
+    output = main()  
+
+print("scp sbarbaro@uaf-10.t2.ucsd.edu:/ttw/CMSSW_10_2_9/src/tW_scattering/*FILENAME*.png /mnt/c/users/sabri/RootZBoson")
+
+#
+#
+#Let's try ONE MORE TIME (uno mas uno mas uno mas)
+
+def saveFig( ax, path, name, scale='linear' ):
+    outdir = os.path.join(path,scale)
+    finalizePlotDir(outdir)
+    ax.set_yscale(scale)
+    if scale == 'log':
+        ax.set_ylim(0.001,1)
+    ax.figure.savefig(os.path.join(outdir, "{}.pdf".format(name)))
+    ax.figure.savefig(os.path.join(outdir, "{}.png".format(name)))
+
+
+cfg = loadConfig()
+cache = dir_archive(os.path.join(os.path.expandvars(cfg['caches']['base']), cfg['caches']['simpleProcessor']), serialized=True)
+cache.load()
+
+histograms= cache.get('histograms')
+output = cache.get('simple_output')
+plotDir = os.path.expandvars(cfg['meta']['plots']) + '/s1processor/'
+finalizePlotDir(plotDir)
+
+for name in histograms:
+    print (name)
+    skip = False
+    histogram = output[name]
+
+    if not skip:
+        ax = hist.plot1d(histogram,overlay="dataset", stack=True) # make density plots because we don't care about x-sec differences
+        for l in ['linear', 'log']:
+            saveFig(ax, plotDir, name, scale=l)
+        ax.clear()
+
+        ax = hist.plot1d(histogram,overlay="dataset", density=True, stack=False) # make density plots because we don't care about x-sec difference
+        for l in ['linear', 'log']:
+             saveFig(ax, plotDir, name+'_shape', scale=l)
+        ax.clear()
+
+
