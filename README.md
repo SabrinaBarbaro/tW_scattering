@@ -31,10 +31,9 @@ deactivate
 scram b -j 8
 ```
 
-Every time you want to use coffea you need to activate the environment
+Every time you want to use coffea you need to activate the environment *this has changed in order to disentangle coffea from CMSSW*
 ```
-cmsenv
-source coffeaEnv/bin/activate
+source activate_environment.sh
 ```
 
 To deactivate the coffea environment, just type `deactivate`
@@ -42,6 +41,26 @@ To deactivate the coffea environment, just type `deactivate`
 
 Use available nanoAOD tools to quickly process samples.
 
+### Use jupyter notebooks
+
+To install jupyter inside the coffeaEnv do the following (now part of the setup script too):
+```
+python -m ipykernel install --user --name=coffeaEnv
+jupyter nbextension install --py widgetsnbextension --user
+jupyter nbextension enable widgetsnbextension --user --py
+```
+
+To start the server:
+```
+jupyter notebook --no-browser --port=8893
+```
+
+On your local machine do the following to connect to uaf
+```
+ssh -N -f -L localhost:8893:localhost:8893 uaf-10.t2.ucsd.edu
+```
+
+Then just paste the jupyter link into your browser and start working.
 
 ### Get combine (for later)
 Latest recommendations at https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation
