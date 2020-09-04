@@ -61,6 +61,13 @@ class exampleProcessor(processor.ProcessorABC):
             'cutflow_TTX':      processor.defaultdict_accumulator(int),
             'cutflow_signal':   processor.defaultdict_accumulator(int),
 
+            "mbj_max" :          hist.Hist("Counts", dataset_axis, mass_axis),
+            "mjj_max" :          hist.Hist("Counts", dataset_axis, mass_axis),
+            "mlb_max" :          hist.Hist("Counts", dataset_axis, mass_axis),
+            "mlb_min" :          hist.Hist("Counts", dataset_axis, mass_axis),
+            "mlj_max" :          hist.Hist("Counts", dataset_axis, mass_axis),
+            "mlj_min" :          hist.Hist("Counts", dataset_axis, mass_axis),
+
             'light_pair_mass':  hist.Hist("Counts", dataset_axis, mass_axis),
             #'lep_b_mass':       hist.Hist("Counts", dataset_axis, mass_axis),
             #'lep_light_mass':   hist.Hist("Counts", dataset_axis, mass_axis),
@@ -78,6 +85,7 @@ class exampleProcessor(processor.ProcessorABC):
             'pt_lep':   hist.Hist("Counts", dataset_axis, pt_axis),
             'eta_lep':  hist.Hist("Counts", dataset_axis, eta_axis),
             'phi_lep': hist.Hist("Counts", dataset_axis, phi_axis),
+            'mt_lep_MET': hist.Hist("Counts", dataset_axis, mass_axis),
 
             'pt_lead_light':  hist.Hist("Counts", dataset_axis, pt_axis),
             'eta_lead_light': hist.Hist("Counts", dataset_axis, eta_axis),
@@ -187,6 +195,15 @@ class exampleProcessor(processor.ProcessorABC):
         b_nonb_pair = b.cross(nonb)
         b_selec = (Jet.counts>6) & (b.counts>=2)
 
+        met_pt = df["MET_pt"]
+        met_phi = df["MET_phi"]
+        bj_pair = b.cross(nonb)
+        jj_pair = nonb.cross(nonb)
+        lb_pair = Lepton.cross(b)
+        lj_pair = Lepton.cross(nonb)
+        ht = Jet[Jet['goodjet']==1].pt.sum()
+        st = Jet[Jet['goodjet']==1].pt.sum() + Lepton.pt.sum() + met_pt    
+
         lead_light = nonb[nonb.pt.argmax()]
 
         good_jet = Jet[Jet['goodjet'] ==1]
@@ -194,15 +211,24 @@ class exampleProcessor(processor.ProcessorABC):
         mega1_pt = Lepton.pt.sum() + good_jet.pt.sum()
         mega_pt = mega1_pt + df["MET_pt"]
         mega_selec = (Jet.counts>6) & (df['nLepton']==1) & (df['nVetoLepton']==1)
+
+        leading_lepton = Lepton[Lepton.pt.argmax()]
+        mt_lep_met = mt(leading_lepton.pt, leading_lepton.phi, met_pt, met_phi)
         
+        b_selection = df["nGoodBTag"]>=2
         singlelep = ((df['nLepton']==1) & (df['nVetoLepton']==1))
         fivejets = (Jet.counts > 5)
         sixjets = (Jet.counts > 6)
         sevenjets = (Jet.counts > 7)
         #eta_lead = ((lead_light.eta) > -1) & ((lead_light.eta) < 1)
         eta_lead =((lead_light.eta>-.5).counts>0) & ((lead_light.eta<0.5).counts>0)
-        
-        myProcesses = ['TTW','ttbar','wjets','tW_scattering']
+        MET_cut = df["MET_pt"] >= 100
+
+        event_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1)
+        tight_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1) & (df['MET_pt']>50) & (ht>500) & (df['MT']>50) & (spectator.counts>=1) & (spectator.pt.max()>50) & (st>600) & (bj_pair.mass.max()>300) & (jj_pair.mass.max()>300)
+
+        ### work on the cutflow
+        myProcesses = ['TTW','TTX','ttbar','wjets','tW_scattering']
 
         #Make CutFlow tables
         addRowToCutFlow(output, df, cfg, 'skim',      None, processes=myProcesses)
@@ -210,14 +236,31 @@ class exampleProcessor(processor.ProcessorABC):
         addRowToCutFlow(output, df, cfg, 'fivejets',       singlelep & fivejets, processes=myProcesses)
         addRowToCutFlow(output, df, cfg, 'sixjets',        singlelep & sixjets, processes=myProcesses)
         addRowToCutFlow(output, df, cfg, 'sevenjets',      singlelep & sevenjets, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'b_selec',        singlelep & sevenjets & b_selec, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'b_selection',        singlelep & sevenjets & b_selection, processes=myProcesses)
         addRowToCutFlow(output, df, cfg, 'eta_lead',     singlelep & sixjets & eta_lead, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'MET_cut',     singlelep & sixjets & MET_cut, processes=myProcesses)
+        
+        ### fill all the histograms
+        
+        output['MET_pt'].fill(dataset=dataset, pt=df["MET_pt"][singlelep].flatten(), weight=df['weight'][singlelep]*cfg['lumi'])
+        output['MT'].fill(dataset=dataset, pt=df["MT"][singlelep].flatten(), weight=df['weight'][singlelep]*cfg['lumi'])
+        output['N_b'].fill(dataset=dataset, multiplicity=df["nGoodBTag"][singlelep], weight=df['weight'][singlelep]*cfg['lumi'] )
+        output['N_jet'].fill(dataset=dataset, multiplicity=df["nGoodJet"][singlelep], weight=df['weight'][singlelep]*cfg['lumi'] )
+        
+        output['mbj_max'].fill(dataset=dataset, mass=bj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['mjj_max'].fill(dataset=dataset, mass=jj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['mlb_min'].fill(dataset=dataset, mass=lb_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['mlb_max'].fill(dataset=dataset, mass=lb_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['mlj_min'].fill(dataset=dataset, mass=lj_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['mlj_max'].fill(dataset=dataset, mass=lj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
+        #output['HT'].fill(dataset=dataset, ht=ht[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        #output['ST'].fill(dataset=dataset, ht=st[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
-        #Fill out the histograms
-        output['b_nonb_massmax'].fill(dataset=dataset, mass=b_nonb_pair[b_nonb_selection].mass.max().flatten(), weight=df['weight'][b_nonb_selection]*cfg['lumi'])
-        output['N_spec'].fill(dataset=dataset, multiplicity=spectator[b_nonb_selection].counts, weight=df['weight'][b_nonb_selection]*cfg['lumi'])
-        output['pt_spec_max'].fill(dataset=dataset, pt=spectator[b_nonb_selection & (spectator.counts>0)].pt.max().flatten(), weight=df['weight'][b_nonb_selection & (spectator.counts>0)]*cfg['lumi'])
+        # forward stuff
+        output['N_spec'].fill(dataset=dataset, multiplicity=spectator[event_selection].counts, weight=df['weight'][event_selection]*cfg['lumi'])
+        output['pt_spec_max'].fill(dataset=dataset, pt=spectator[event_selection & (spectator.counts>0)].pt.max().flatten(), weight=df['weight'][event_selection & (spectator.counts>0)]*cfg['lumi'])
+
         output['light_pair_mass'].fill(dataset=dataset, mass= light_pair[light_pair_selec].mass.flatten())
 #        output['lep_b_mass'].fill(dataset=dataset, mass= lep_b[lep_b_selec].mass.flatten())
 #        output['lep_light_mass'].fill(dataset=dataset, mass= lep_light.mass.flatten())
@@ -236,12 +279,26 @@ class exampleProcessor(processor.ProcessorABC):
         output['pt_lead_light'].fill(dataset=dataset, pt= lead_light[light_pair_selec].pt.flatten())
         output['eta_lead_light'].fill(dataset=dataset, eta= lead_light[light_pair_selec].eta.flatten())
         output['phi_lead_light'].fill(dataset=dataset, phi= lead_light[light_pair_selec].phi.flatten())
+        output['mt_lep_MET'].fill(dataset=dataset, mass = mt_lep_met[b_selec].flatten())
 
+
+        ### event shape variables - neglect for now
+        
+        #output['FWMT1'].fill(dataset=dataset, norm=FWMT(leading_nonb)[1][tight_selection], weight=df['weight'][tight_selection]*cfg['lumi'])
+        #output['FWMT2'].fill(dataset=dataset, norm=FWMT(leading_nonb)[2][tight_selection], weight=df['weight'][tight_selection]*cfg['lumi'])
+        #output['FWMT3'].fill(dataset=dataset, norm=FWMT(leading_nonb)[3][tight_selection], weight=df['weight'][tight_selection]*cfg['lumi'])
+        #output['FWMT4'].fill(dataset=dataset, norm=FWMT(leading_nonb)[4][tight_selection], weight=df['weight'][tight_selection]*cfg['lumi'])
+        #output['FWMT5'].fill(dataset=dataset, norm=FWMT(leading_nonb)[5][tight_selection], weight=df['weight'][tight_selection]*cfg['lumi'])
+        ##output['S'].fill(dataset=dataset, norm=sphericityBasic(alljet)[event_selection], weight=df['weight'][event_selection]*cfg['lumi'])
+
+        #all_obj = mergeArray(alljet, lepton)
+        #output['S_lep'].fill(dataset=dataset, norm=sphericityBasic(all_obj)[event_selection], weight=df['weight'][event_selection]*cfg['lumi'])
+        
+        
         return output
 
     def postprocess(self, accumulator):
         return accumulator
-
 
 def main():
 
@@ -255,7 +312,7 @@ def main():
     from samples import fileset, fileset_small, fileset_1l
 
     # histograms
-    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light"] 
+    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max"] 
 
 
     # initialize cache
@@ -268,7 +325,7 @@ def main():
 
     else:
         # Run the processor
-        output = processor.run_uproot_job(fileset_1l, #maybe the Event scale is for fileset_1l
+        output = processor.run_uproot_job(fileset_small, #maybe the Event scale is for fileset_1l
                                       treename='Events',
                                       processor_instance=exampleProcessor(),
                                       executor=processor.futures_executor,
@@ -291,6 +348,18 @@ def main():
 if __name__ == "__main__":
     output = main()
 
-    df = getCutFlowTable(output, processes=['tW_scattering', 'TTW', 'ttbar', 'wjets'], lines=['skim', 'singlelep', 'fivejets','sixjets', 'eta_lead','sevenjets', 'b_selec'])
+    df = getCutFlowTable(output, processes=['tW_scattering','TTX', 'TTW', 'ttbar', 'wjets'], lines=['skim', 'singlelep', 'fivejets','sixjets', 'eta_lead','sevenjets', 'b_selection', 'MET_cut'])
+  
 
-
+percentoutput = {}
+for process in ['tW_scattering', 'TTX', 'TTW', 'ttbar', 'wjets']:
+    percentoutput[process] = {'skim':0,'singlelep':0,'fivejets':0,'sixjets':0, 'eta_lead':0, 'sevenjets':0, 'b_selection':0, 'MET_cut':0}
+    lastnum = output[process]['skim']
+    for select in ['skim', 'singlelep', 'fivejets','sixjets', 'eta_lead','sevenjets', 'b_selection', 'MET_cut']:
+        thisnum = output[process][select]
+        percent = thisnum/lastnum
+        percentoutput[process][select] = percent
+        lastnum = thisnum
+df_p = pd.DataFrame(data=percentoutput)
+df_p = df_p.reindex(['skim', 'singlelep', 'fivejets','sixjets', 'eta_lead','sevenjets', 'b_selection', 'MET_cut'])
+print(df_p) 

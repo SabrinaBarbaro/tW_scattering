@@ -59,6 +59,7 @@ bins = {\
     'mlj_max':  {'axis': 'mass',          'overflow':'over',  'bins': hist.Bin('mass', r'$M(b, light) \ (GeV)$', 25, 0, 1000)},
     'HT':       {'axis': 'ht',            'overflow':'over',  'bins': hist.Bin('ht', r'$M(b, light) \ (GeV)$', 30, 0, 1500)},
     'ST':       {'axis': 'ht',            'overflow':'over',  'bins': hist.Bin('ht', r'$M(b, light) \ (GeV)$', 30, 0, 1500)},
+    'mt_lep_MET': {'axis': 'mass',          'overflow':'over',  'bins': hist.Bin('mass', r'$M(b, light) \ (GeV)$', 15, 0, 300)},
     'FWMT1':    {'axis': 'norm',          'overflow':'none',  'bins': hist.Bin('norm', r'FWMT1', 25, 0, 1)},
     'FWMT2':    {'axis': 'norm',          'overflow':'none',  'bins': hist.Bin('norm', r'FWMT2', 20, 0, 0.8)},
     'FWMT3':    {'axis': 'norm',          'overflow':'none',  'bins': hist.Bin('norm', r'FWMT3', 25, 0, 1)},
@@ -72,7 +73,6 @@ for name in histograms:
     print (name)
     skip = False
     histogram = output[name]
-<<<<<<< HEAD
     if name == 'MET_pt':
         # rebin
         axis = 'pt'
@@ -123,76 +123,111 @@ for name in histograms:
 #        axis = 'mass'
 #        new_mass_bins = hist.Bin('mass', r'$M(b, lepton) \ (GeV)$', 25, 0, 1500)
 #        histogram = histogram.rebin('mass', new_mass_bins)
-    elif name == 'lep_b_pt':
-        # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{b, lep}\ (GeV)$', 20, 0, 400)
-        histogram = histogram.rebin('pt', new_pt_bins)
-    elif name == 'light_pair_pt':
-        # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{light, light}\ (GeV)$', 20, 0, 400)
-        histogram = histogram.rebin('pt', new_pt_bins)
-    elif name == 'lep_light_pt':
-        # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{light, lep}\ (GeV)$', 20, 0, 400)
-        histogram = histogram.rebin('pt', new_pt_bins)
-#    elif name == 'S_T':
+#    elif name == 'lep_b_pt':
 #        # rebin
 #        axis = 'pt'
-#        new_pt_bins = hist.Bin('pt', r'$p_{b, nonb}\ (GeV)$', 20, 0, 1000)
+#        new_pt_bins = hist.Bin('pt', r'$p_{b, lep}\ (GeV)$', 20, 0, 400)
 #        histogram = histogram.rebin('pt', new_pt_bins)
-    elif name == 'H_T':
-        # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{b, nonb}\ (GeV)$', 20, 0, 400)
-        histogram = histogram.rebin('pt', new_pt_bins)
-#    elif name == 'pt_b':
+#    elif name == 'light_pair_pt':
 #        # rebin
 #        axis = 'pt'
-#        new_pt_bins = hist.Bin('pt', r'$p_{single b}\ (GeV)$', 20, 0, 400)
+#        new_pt_bins = hist.Bin('pt', r'$p_{light, light}\ (GeV)$', 20, 0, 400)
 #        histogram = histogram.rebin('pt', new_pt_bins)
-#    elif name == 'eta_b':
+#    elif name == 'lep_light_pt':
+#        # rebin
+#        axis = 'pt'
+#        new_pt_bins = hist.Bin('pt', r'$p_{light, lep}\ (GeV)$', 20, 0, 400)
+#        histogram = histogram.rebin('pt', new_pt_bins)
+    elif name == 'S_T':
+        # rebin
+        axis = 'pt'
+        new_pt_bins = hist.Bin('pt', r'$p_{b, nonb}\ (GeV)$', 20, 0, 1000)
+        histogram = histogram.rebin('pt', new_pt_bins)
+#    elif name == 'H_T':
+#        # rebin
+#        axis = 'pt'
+#        new_pt_bins = hist.Bin('pt', r'$p_{b, nonb}\ (GeV)$', 20, 0, 400)
+#        histogram = histogram.rebin('pt', new_pt_bins)
+    elif name == 'pt_b':
+        # rebin
+        axis = 'pt'
+        new_pt_bins = hist.Bin('pt', r'$p_{single b}\ (GeV)$', 20, 0, 400)
+        histogram = histogram.rebin('pt', new_pt_bins)
+    elif name == 'eta_b':
+        # rebin
+        axis = 'eta'
+        new_eta_bins = hist.Bin('eta', r'$\eta$', 30, -5.5, 5.5)
+        histogram = histogram.rebin('eta', new_eta_bins)
+#    elif name == 'phi_b':
+#        # rebin
+#        axis = 'phi'
+#        new_phi_bins = hist.Bin('phi', r'$phi(single b)$', 30, -5.5, 5.5)
+#        histogram = histogram.rebin('phi', new_phi_bins)
+#    elif name == 'pt_lep':
+#        # rebin
+#        axis = 'pt'
+#        new_pt_bins = hist.Bin('pt', r'$p_{single lep}\ (GeV)$', 20, 0, 400)
+#        histogram = histogram.rebin('pt', new_pt_bins)
+#    elif name == 'eta_lep':
 #        # rebin
 #        axis = 'eta'
-#        new_eta_bins = hist.Bin('eta', r'$\eta$', 30, -5.5, 5.5)
+#        new_eta_bins = hist.Bin('eta', r'$eta(single lep)$', 30, -5.5, 5.5)
 #        histogram = histogram.rebin('eta', new_eta_bins)
-    elif name == 'phi_b':
+#    elif name == 'phi_lep':
+#        # rebin
+#        axis = 'phi'
+#        new_phi_bins = hist.Bin('phi', r'$phi(single lep)$', 30, -5.5, 5.5)
+#        histogram = histogram.rebin('phi', new_phi_bins)
+#    elif name == 'pt_lead_light':
+#        # rebin
+#        axis = 'pt'
+#        new_pt_bins = hist.Bin('pt', r'$p_{lead light jet}\ (GeV)$', 20, 0, 400)
+#        histogram = histogram.rebin('pt', new_pt_bins)
+#    elif name == 'eta_lead_light':
+#        # rebin
+#        axis = 'eta'
+#        new_eta_bins = hist.Bin('eta', r'$eta(lead light jet)$', 30, -5.5, 5.5)
+#        histogram = histogram.rebin('eta', new_eta_bins)
+#    elif name == 'phi_lead_light':
+#        # rebin
+#        axis = 'phi'
+#        new_phi_bins = hist.Bin('phi', r'$phi(lead light jet)$', 30, -5.5, 5.5)
+#        histogram = histogram.rebin('phi', new_phi_bins)
+#    elif name == 'mt_lep_MET':
+#        # rebin
+#        axis = 'mass'
+#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+#        histogram = histogram.rebin('mass', new_mass_bins)
+    elif name == 'mbj_max':
         # rebin
-        axis = 'phi'
-        new_phi_bins = hist.Bin('phi', r'$phi(single b)$', 30, -5.5, 5.5)
-        histogram = histogram.rebin('phi', new_phi_bins)
-    elif name == 'pt_lep':
+        axis = 'mass'
+        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+        histogram = histogram.rebin('mass', new_mass_bins)
+    elif name == 'mjj_max':
         # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{single lep}\ (GeV)$', 20, 0, 400)
-        histogram = histogram.rebin('pt', new_pt_bins)
-    elif name == 'eta_lep':
-        # rebin
-        axis = 'eta'
-        new_eta_bins = hist.Bin('eta', r'$eta(single lep)$', 30, -5.5, 5.5)
-        histogram = histogram.rebin('eta', new_eta_bins)
-    elif name == 'phi_lep':
-        # rebin
-        axis = 'phi'
-        new_phi_bins = hist.Bin('phi', r'$phi(single lep)$', 30, -5.5, 5.5)
-        histogram = histogram.rebin('phi', new_phi_bins)
-    elif name == 'pt_lead_light':
-        # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{lead light jet}\ (GeV)$', 20, 0, 400)
-        histogram = histogram.rebin('pt', new_pt_bins)
-    elif name == 'eta_lead_light':
-        # rebin
-        axis = 'eta'
-        new_eta_bins = hist.Bin('eta', r'$eta(lead light jet)$', 30, -5.5, 5.5)
-        histogram = histogram.rebin('eta', new_eta_bins)
-    elif name == 'phi_lead_light':
-        # rebin
-        axis = 'phi'
-        new_phi_bins = hist.Bin('phi', r'$phi(lead light jet)$', 30, -5.5, 5.5)
-        histogram = histogram.rebin('phi', new_phi_bins)
+        axis = 'mass'
+        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+        histogram = histogram.rebin('mass', new_mass_bins)
+#    elif name == 'mlb_min':
+#        # rebin
+#        axis = 'mass'
+#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+#        histogram = histogram.rebin('mass', new_mass_bins)
+#    elif name == 'mlb_max':
+#        # rebin
+#        axis = 'mass'
+#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+#        histogram = histogram.rebin('mass', new_mass_bins)
+#    elif name == 'mlj_min':
+#        # rebin
+#        axis = 'mass'
+#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+#        histogram = histogram.rebin('mass', new_mass_bins)
+#    elif name == 'mlj_max':
+#        # rebin
+#        axis = 'mass'
+#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+#        histogram = histogram.rebin('mass', new_mass_bins)
     else:
         skip = True
 
@@ -244,7 +279,6 @@ for name in histograms:
         #pd_ax.clear()
         ax.clear()
 
-=======
     
     if not name in bins.keys():
         continue
@@ -302,7 +336,7 @@ for name in histograms:
 
     
     try:
->>>>>>> 6fe1e83fa41b23b262513c90f05c4b5545e97540
+        #>>>>>>> 6fe1e83fa41b23b262513c90f05c4b5545e97540
         fig, ax = plt.subplots(1,1,figsize=(7,7))
         notdata = re.compile('(?!pseudodata|wjets|diboson)')
         hist.plot1d(histogram[notdata],overlay="dataset", density=True, stack=False, overflow=bins[name]['overflow'], ax=ax) # make density plots because we don't care about x-sec differences
