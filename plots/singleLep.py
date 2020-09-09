@@ -158,6 +158,11 @@ for name in histograms:
         axis = 'eta'
         new_eta_bins = hist.Bin('eta', r'$\eta$', 30, -5.5, 5.5)
         histogram = histogram.rebin('eta', new_eta_bins)
+    elif name == 'b_debug':
+        # rebin
+        axis = 'multiplicity'
+        new_n_bins = hist.Bin('multiplicity', r'$N_{jet, fwd}$', 15, -0.5, 14.5)
+        histogram = histogram.rebin('multiplicity', new_n_bins)
 #    elif name == 'phi_b':
 #        # rebin
 #        axis = 'phi'
@@ -249,6 +254,7 @@ for name in histograms:
             histogram.fill(dataset='pseudodata', eta=values)
         elif axis == 'phi':
             histogram.fill(dataset='pseudodata', phi=values)
+
         
         import re
         notdata = re.compile('(?!pseudodata)')
