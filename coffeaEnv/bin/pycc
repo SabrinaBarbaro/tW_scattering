@@ -1,0 +1,3 @@
+#!/home/users/sbarbaro/ttw/CMSSW_10_2_9/src/tW_scattering/coffeaEnv/bin/python3
+from numba.pycc import main
+main()
