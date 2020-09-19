@@ -41,7 +41,7 @@ class exampleProcessor(processor.ProcessorABC):
 
         # we can use a large number of bins and rebin later
         dataset_axis        = hist.Cat("dataset",   "Primary dataset")
-#        count_axis          = hist.Bin("counts", "number", 50, 0, 15)
+        ht_axis             = hist.Bin("ht",        r"$H_{T}$ (GeV)", 500, 0, 5000)
         pt_axis             = hist.Bin("pt",        r"$p_{T}$ (GeV)", 600, 0, 1000)
         mass_axis           = hist.Bin("mass",      r"M (GeV)", 500, 0, 2000)
         eta_axis            = hist.Bin("eta",       r"$\eta$", 60, -5.5, 5.5)
@@ -206,7 +206,7 @@ class exampleProcessor(processor.ProcessorABC):
         lj_pair = Lepton.cross(nonb)
         ht = Jet[Jet['goodjet']==1].pt.sum()
         st = Jet[Jet['goodjet']==1].pt.sum() + Lepton.pt.sum() + met_pt    
-
+        
         lead_light = nonb[nonb.pt.argmax()]
         b_debug_selec = ((Jet.counts>7) & (df['nLepton']==1) & (df['nVetoLepton']==1))
 
@@ -219,15 +219,16 @@ class exampleProcessor(processor.ProcessorABC):
         leading_lepton = Lepton[Lepton.pt.argmax()]
         mt_lep_met = mt(leading_lepton.pt, leading_lepton.phi, met_pt, met_phi)
         
-        b_selection = df["nGoodBTag"]>=2
+        b_selection = df["nGoodBTag"]>=1
         singlelep = ((df['nLepton']==1) & (df['nVetoLepton']==1))
-        fivejets = (Jet.counts > 5)
-        sixjets = (Jet.counts > 6)
         sevenjets = (Jet.counts > 7)
-        eightjets = (Jet.counts > 8)
-        #eta_lead = ((lead_light.eta) > -1) & ((lead_light.eta) < 1)
         eta_lead =((lead_light.eta>-.5).counts>0) & ((lead_light.eta<0.5).counts>0)
-        MET_cut = df["MET_pt"] >= 50
+        MET_cut = df["MET_pt"] >= 40
+        MT_cut = df["MT"] >= 30
+        HT_cuts = (ht>500)
+        ST_cut = (st>600)
+        HT_cut = Jet[HT_cuts]
+       # ST_cut = [ST_cuts]
 
         event_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1)
         tight_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1) & (df['MET_pt']>50) & (ht>500) & (df['MT']>50) & (spectator.counts>=1) & (spectator.pt.max()>50) & (st>600) & (bj_pair.mass.max()>300) & (jj_pair.mass.max()>300)
@@ -238,13 +239,12 @@ class exampleProcessor(processor.ProcessorABC):
         #Make CutFlow tables
         addRowToCutFlow(output, df, cfg, 'skim',      None, processes=myProcesses)
         addRowToCutFlow(output, df, cfg, 'singlelep',     singlelep, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'fivejets',       singlelep & fivejets, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'sixjets',        singlelep & sixjets, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'sevenjets',      singlelep & sevenjets, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'eightjets',        singlelep & eightjets, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'b_selection',        singlelep & sevenjets & b_selection, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'eta_lead',     singlelep & sevenjets & b_selection & eta_lead, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'MET_cut',     singlelep & sevenjets & b_selection & MET_cut, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'sevenjets',     singlelep & sevenjets, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'b_selection',    singlelep & sevenjets & b_selection, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'MET_cut',        singlelep & sevenjets & b_selection & MET_cut, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'MT_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'HT_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut & HT_cut, processes=myProcesses)
+        #addRowToCutFlow(output, df, cfg, 'ST_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut & HT_cut & ST_cut, processes=myProcesses)
         
         ### fill all the histograms
         
@@ -263,7 +263,7 @@ class exampleProcessor(processor.ProcessorABC):
         #output['HT'].fill(dataset=dataset, ht=ht[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         #output['ST'].fill(dataset=dataset, ht=st[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
-        output['b_debug'].fill(dataset=dataset, multiplicity = b[b_debug_selec].counts.flatten())
+        output['b_debug'].fill(dataset=dataset, multiplicity = b[b_debug_selec].counts.flatten(), weight=df['weight'][b_debug_selec]*cfg['lumi'])
 
         # forward stuff
         output['N_spec'].fill(dataset=dataset, multiplicity=spectator[event_selection].counts, weight=df['weight'][event_selection]*cfg['lumi'])
@@ -356,18 +356,18 @@ def main():
 if __name__ == "__main__":
     output = main()
 
-    df = getCutFlowTable(output, processes=['tW_scattering','TTX', 'TTW', 'ttbar', 'wjets'], lines=['skim', 'singlelep', 'fivejets','sixjets','sevenjets', 'eightjets', 'eta_lead', 'b_selection', 'MET_cut'])
+    df = getCutFlowTable(output, processes=['tW_scattering','TTX', 'TTW', 'ttbar', 'wjets'], lines=['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut', 'ST_cut'])
   
 
 percentoutput = {}
 for process in ['tW_scattering', 'TTX', 'TTW', 'ttbar', 'wjets']:
-    percentoutput[process] = {'skim':0,'singlelep':0,'fivejets':0,'sixjets':0, 'sevenjets':0 ,'eightjets':0, 'eta_lead':0, 'b_selection':0, 'MET_cut':0}
+    percentoutput[process] = {'skim':0,'singlelep':0, 'sevenjets':0 , 'b_selection':0, 'MET_cut':0, 'MT_cut':0, 'HT_cut':0,'ST_cut':0}
     lastnum = output[process]['skim']
-    for select in ['skim', 'singlelep', 'fivejets','sixjets', 'sevenjets','eightjets', 'eta_lead', 'b_selection', 'MET_cut']:
+    for select in ['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut', 'ST_cut']:
         thisnum = output[process][select]
         percent = thisnum/lastnum
         percentoutput[process][select] = percent
         lastnum = thisnum
 df_p = pd.DataFrame(data=percentoutput)
-df_p = df_p.reindex(['skim', 'singlelep', 'fivejets','sixjets','sevenjets', 'eightjets', 'eta_lead', 'b_selection', 'MET_cut'])
+df_p = df_p.reindex(['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut','ST_cut'])
 print(df_p) 
