@@ -3,7 +3,6 @@ Just a collection of useful functions
 '''
 import pandas as pd
 import numpy as np
-import awkward
 
 #import yaml
 from yaml import load, dump
@@ -16,6 +15,7 @@ except ImportError:
 
 import os
 import shutil
+import math
 
 import glob
 
@@ -34,9 +34,9 @@ def dumpConfig(cfg):
 def getName( DAS ):
     split = DAS.split('/')
     if split[-1].count('AOD'):
-        return '__'.join(DAS.split('/')[1:3])
+        return '_'.join(DAS.split('/')[1:3])
     else:
-        return '__'.join(DAS.split('/')[-3:-1])
+        return '_'.join(DAS.split('/')[-3:-1])
         #return'dummy'
 
 def finalizePlotDir( path ):
@@ -52,21 +52,27 @@ def addRowToCutFlow( output, df, cfg, name, selection, processes=['TTW', 'TTX', 
     for process in processes:
         if selection is not None:
             output[process][name] += ( sum(df['weight'][ (df['dataset']==process) & selection ].flatten() )*cfg['lumi'] )
+            output[process][name+'_w2'] += ( sum((df['weight'][ (df['dataset']==process) & selection ]**2).flatten() )*cfg['lumi']**2 )
         else:
             output[process][name] += ( sum(df['weight'][ (df['dataset']==process) ].flatten() )*cfg['lumi'] )
+            output[process][name+'_w2'] += ( sum((df['weight'][ (df['dataset']==process) ]**2).flatten() )*cfg['lumi']**2 )
             
-def getCutFlowTable(output, processes=['tW_scattering', 'TTW', 'ttbar'], lines=['skim', 'twoJet', 'oneBTag']):
+def getCutFlowTable(output, processes=['tW_scattering', 'TTW', 'ttbar'], lines=['skim', 'twoJet', 'oneBTag'], significantFigures=3):
     '''
     Takes a cache and returns a formated cut-flow table of processes.
     Lines and processes have to follow the naming of the coffea processor output.
     '''
     res = {}
     for proc in processes:
+<<<<<<< HEAD
         res[proc] = {line: output[proc][line] for line in lines}
 #    ratio = {}
 #    for i in processes ['tw_scattering', 'TTX', 'TTW', 'wjets', 'ttbar']
 #       ratio[processes] = {'skim':0, 'singlelep':0, 'fivejets':0, 'sixjets':0, 'eta_lead':0, 'sevenjets':0, 'b_selection':0, 'MET_cut':0} #This creates an empty dictionary
 #     	ratio[processes][i] =/ #previous element
+=======
+        res[proc] = {line: "%s +/- %s"%(round(output[proc][line], significantFigures-len(str(int(output[proc][line])))), round(math.sqrt(output[proc][line+'_w2']), significantFigures-len(str(int(output[proc][line]))))) for line in lines}
+>>>>>>> ea6418109fcecad09051f095e8d581d0d7b39732
     df = pd.DataFrame(res)
     df = df.reindex(lines) # restores the proper order
     print (df[processes])
@@ -162,6 +168,7 @@ def mergeArray(a1, a2):
     '''
     Merge two arrays into one, e.g. electrons and muons
     '''
+    import awkward
     a1_tags = awkward.JaggedArray(a1.starts, a1.stops, np.full(len(a1.content), 0, dtype=np.int64))
     a1_index = awkward.JaggedArray(a1.starts, a1.stops, np.arange(len(a1.content), dtype=np.int64))
     a2_tags = awkward.JaggedArray(a2.starts, a2.stops, np.full(len(a2.content), 1, dtype=np.int64))
