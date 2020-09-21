@@ -64,15 +64,7 @@ def getCutFlowTable(output, processes=['tW_scattering', 'TTW', 'ttbar'], lines=[
     '''
     res = {}
     for proc in processes:
-<<<<<<< HEAD
-        res[proc] = {line: output[proc][line] for line in lines}
-#    ratio = {}
-#    for i in processes ['tw_scattering', 'TTX', 'TTW', 'wjets', 'ttbar']
-#       ratio[processes] = {'skim':0, 'singlelep':0, 'fivejets':0, 'sixjets':0, 'eta_lead':0, 'sevenjets':0, 'b_selection':0, 'MET_cut':0} #This creates an empty dictionary
-#     	ratio[processes][i] =/ #previous element
-=======
         res[proc] = {line: "%s +/- %s"%(round(output[proc][line], significantFigures-len(str(int(output[proc][line])))), round(math.sqrt(output[proc][line+'_w2']), significantFigures-len(str(int(output[proc][line]))))) for line in lines}
->>>>>>> ea6418109fcecad09051f095e8d581d0d7b39732
     df = pd.DataFrame(res)
     df = df.reindex(lines) # restores the proper order
     print (df[processes])

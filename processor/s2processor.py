@@ -90,6 +90,9 @@ class exampleProcessor(processor.ProcessorABC):
             'phi_lep': hist.Hist("Counts", dataset_axis, phi_axis),
             'mt_lep_MET': hist.Hist("Counts", dataset_axis, mass_axis),
 
+            'HT': hist.Hist("Counts", dataset_axis, ht_axis),
+            'ST': hist.Hist("Counts", dataset_axis, ht_axis),
+
             'pt_lead_light':  hist.Hist("Counts", dataset_axis, pt_axis),
             'eta_lead_light': hist.Hist("Counts", dataset_axis, eta_axis),
             'phi_lead_light': hist.Hist("Counts", dataset_axis, phi_axis),
@@ -225,10 +228,10 @@ class exampleProcessor(processor.ProcessorABC):
         eta_lead =((lead_light.eta>-.5).counts>0) & ((lead_light.eta<0.5).counts>0)
         MET_cut = df["MET_pt"] >= 40
         MT_cut = df["MT"] >= 30
-        HT_cuts = (ht>500)
-        ST_cut = (st>600)
-        HT_cut = Jet[HT_cuts]
-       # ST_cut = [ST_cuts]
+        #ht_var = good_jet.pt
+        HT_cut = (ht>500)
+        ST_cut= (st>600)
+    
 
         event_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1)
         tight_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1) & (df['MET_pt']>50) & (ht>500) & (df['MT']>50) & (spectator.counts>=1) & (spectator.pt.max()>50) & (st>600) & (bj_pair.mass.max()>300) & (jj_pair.mass.max()>300)
@@ -243,8 +246,8 @@ class exampleProcessor(processor.ProcessorABC):
         addRowToCutFlow(output, df, cfg, 'b_selection',    singlelep & sevenjets & b_selection, processes=myProcesses)
         addRowToCutFlow(output, df, cfg, 'MET_cut',        singlelep & sevenjets & b_selection & MET_cut, processes=myProcesses)
         addRowToCutFlow(output, df, cfg, 'MT_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut, processes=myProcesses)
-        addRowToCutFlow(output, df, cfg, 'HT_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut & HT_cut, processes=myProcesses)
-        #addRowToCutFlow(output, df, cfg, 'ST_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut & HT_cut & ST_cut, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'HT_cut',         singlelep & sevenjets & b_selection & MET_cut & MT_cut & HT_cut, processes=myProcesses)
+        addRowToCutFlow(output, df, cfg, 'ST_cut',        singlelep & sevenjets & b_selection & MET_cut & MT_cut & HT_cut & ST_cut, processes=myProcesses)
         
         ### fill all the histograms
         
@@ -260,8 +263,8 @@ class exampleProcessor(processor.ProcessorABC):
         output['mlj_min'].fill(dataset=dataset, mass=lj_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlj_max'].fill(dataset=dataset, mass=lj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
-        #output['HT'].fill(dataset=dataset, ht=ht[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
-        #output['ST'].fill(dataset=dataset, ht=st[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['HT'].fill(dataset=dataset, ht=ht[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['ST'].fill(dataset=dataset, ht=st[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
         output['b_debug'].fill(dataset=dataset, multiplicity = b[b_debug_selec].counts.flatten(), weight=df['weight'][b_debug_selec]*cfg['lumi'])
 
@@ -320,7 +323,7 @@ def main():
     from samples import fileset, fileset_small, fileset_1l
 
     # histograms
-    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max", "b_debug"] 
+    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max", "b_debug", "HT", "ST"] 
 
 
     # initialize cache
@@ -363,7 +366,7 @@ percentoutput = {}
 for process in ['tW_scattering', 'TTX', 'TTW', 'ttbar', 'wjets']:
     percentoutput[process] = {'skim':0,'singlelep':0, 'sevenjets':0 , 'b_selection':0, 'MET_cut':0, 'MT_cut':0, 'HT_cut':0,'ST_cut':0}
     lastnum = output[process]['skim']
-    for select in ['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut', 'ST_cut']:
+    for select in ['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut']:#, 'ST_cut']:
         thisnum = output[process][select]
         percent = thisnum/lastnum
         percentoutput[process][select] = percent

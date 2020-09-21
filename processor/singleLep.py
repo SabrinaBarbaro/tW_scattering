@@ -1,4 +1,4 @@
-imple processor using coffea.
+#simple processor using coffea
 [x] weights
 [x] Missing pieces: appropriate sample handling
 [x] Accumulator caching
