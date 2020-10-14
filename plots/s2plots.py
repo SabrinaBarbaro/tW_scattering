@@ -128,21 +128,21 @@ for name in histograms:
 #        axis = 'pt'
 #        new_pt_bins = hist.Bin('pt', r'$p_{b, lep}\ (GeV)$', 20, 0, 400)
 #        histogram = histogram.rebin('pt', new_pt_bins)
-#    elif name == 'light_pair_pt':
-#        # rebin
-#        axis = 'pt'
-#        new_pt_bins = hist.Bin('pt', r'$p_{light, light}\ (GeV)$', 20, 0, 400)
-#        histogram = histogram.rebin('pt', new_pt_bins)
+    elif name == 'light_pair_pt':
+        # rebin
+        axis = 'pt'
+        new_pt_bins = hist.Bin('pt', r'$p_{light, light}\ (GeV)$', 20, 0, 400)
+        histogram = histogram.rebin('pt', new_pt_bins)
 #    elif name == 'lep_light_pt':
 #        # rebin
 #        axis = 'pt'
 #        new_pt_bins = hist.Bin('pt', r'$p_{light, lep}\ (GeV)$', 20, 0, 400)
 #        histogram = histogram.rebin('pt', new_pt_bins)
-    elif name == 'S_T':
-        # rebin
-        axis = 'pt'
-        new_pt_bins = hist.Bin('pt', r'$p_{b, nonb}\ (GeV)$', 20, 0, 1000)
-        histogram = histogram.rebin('pt', new_pt_bins)
+#    elif name == 'S_T':
+#        # rebin
+#        axis = 'pt'
+#        new_pt_bins = hist.Bin('pt', r'$p_{b, nonb}\ (GeV)$', 20, 0, 1000)
+#        histogram = histogram.rebin('pt', new_pt_bins)
 #    elif name == 'H_T':
 #        # rebin
 #        axis = 'pt'
@@ -178,11 +178,11 @@ for name in histograms:
 #        axis = 'phi'
 #        new_phi_bins = hist.Bin('phi', r'$phi(single b)$', 30, -5.5, 5.5)
 #        histogram = histogram.rebin('phi', new_phi_bins)
-#    elif name == 'pt_lep':
-#        # rebin
-#        axis = 'pt'
-#        new_pt_bins = hist.Bin('pt', r'$p_{single lep}\ (GeV)$', 20, 0, 400)
-#        histogram = histogram.rebin('pt', new_pt_bins)
+    elif name == 'pt_lep':
+        # rebin
+        axis = 'pt'
+        new_pt_bins = hist.Bin('pt', r'$p_{single lep}\ (GeV)$', 20, 0, 400)
+        histogram = histogram.rebin('pt', new_pt_bins)
 #    elif name == 'eta_lep':
 #        # rebin
 #        axis = 'eta'
@@ -193,11 +193,11 @@ for name in histograms:
 #        axis = 'phi'
 #        new_phi_bins = hist.Bin('phi', r'$phi(single lep)$', 30, -5.5, 5.5)
 #        histogram = histogram.rebin('phi', new_phi_bins)
-#    elif name == 'pt_lead_light':
-#        # rebin
-#        axis = 'pt'
-#        new_pt_bins = hist.Bin('pt', r'$p_{lead light jet}\ (GeV)$', 20, 0, 400)
-#        histogram = histogram.rebin('pt', new_pt_bins)
+    elif name == 'pt_lead_light':
+        # rebin
+        axis = 'pt'
+        new_pt_bins = hist.Bin('pt', r'$p_{lead light jet}\ (GeV)$', 20, 0, 400)
+        histogram = histogram.rebin('pt', new_pt_bins)
 #    elif name == 'eta_lead_light':
 #        # rebin
 #        axis = 'eta'
@@ -216,7 +216,7 @@ for name in histograms:
     elif name == 'mbj_max':
         # rebin
         axis = 'mass'
-        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+        new_mass_bins = hist.Bin('mass', r'$M(b, light) \ (GeV)$', 25, 0, 1500)
         histogram = histogram.rebin('mass', new_mass_bins)
     elif name == 'mjj_max':
         # rebin
@@ -228,21 +228,42 @@ for name in histograms:
 #        axis = 'mass'
 #        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
 #        histogram = histogram.rebin('mass', new_mass_bins)
-#    elif name == 'mlb_max':
-#        # rebin
-#        axis = 'mass'
-#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
-#        histogram = histogram.rebin('mass', new_mass_bins)
+    elif name == 'mlb_max':
+        # rebin
+        axis = 'mass'
+        new_mass_bins = hist.Bin('mass', r'$M(lepton, b) \ (GeV)$', 25, 0, 1500)
+        histogram = histogram.rebin('mass', hist.Bin('mass', r'$M(b, light) \ (GeV)$', 25, 0, 500))
 #    elif name == 'mlj_min':
 #        # rebin
 #        axis = 'mass'
 #        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
 #        histogram = histogram.rebin('mass', new_mass_bins)
-#    elif name == 'mlj_max':
+    elif name == 'mlj_max':
+        # rebin
+        axis = 'mass'
+        new_mass_bins = hist.Bin('mass', r'$M(lepton, light) \ (GeV)$', 25, 0, 1500)
+        histogram = histogram.rebin('mass', hist.Bin('mass', r'$M(b, light) \ (GeV)$', 25, 0, 1000))
+#    elif name == 'central3':
+#        # rebin
+#        axis = 'eta'
+#        new_eta_bins = hist.Bin('eta', r'$\eta$', 30, -5.5, 5.5)
+#        histogram = histogram.rebin('eta', new_eta_bins)
+#    elif name == 'deltaEtaJJMin':
+#        # rebin
+#        axis = 'eta'
+#        new_eta_bins = hist.Bin('eta', r'$\eta$', 30, -5.5, 5.5)
+#        histogram = histogram.rebin('eta', new_eta_bins)
+    elif name == 'deltaEtalj':
+        # rebin
+        axis = 'eta'
+        new_eta_bins = hist.Bin('eta', r'$\eta$', 30, -5.5, 5.5)
+        histogram = histogram.rebin('eta', new_eta_bins)
+#    elif name == 'lep_mass':
 #        # rebin
 #        axis = 'mass'
-#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 1500)
+#        new_mass_bins = hist.Bin('mass', r'$M(light, light) \ (GeV)$', 25, 0, 150)
 #        histogram = histogram.rebin('mass', new_mass_bins)
+
     else:
         skip = True
 
@@ -271,29 +292,29 @@ for name in histograms:
         import re
         notdata = re.compile('(?!pseudodata)')
 
-        fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
+        fig, (ax) = plt.subplots(1,figsize=(7,7))#, gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
 
         # get axes 
         hist.plot1d(histogram[notdata],overlay="dataset", ax=ax, stack=True, overflow='over', clear=False, line_opts=None, fill_opts=fill_opts, error_opts=error_opts, order=['tW_scattering', 'TTX', 'TTW','ttbar','wjets']) #error_opts??
         hist.plot1d(histogram['pseudodata'], overlay="dataset", ax=ax, overflow='over', error_opts=data_err_opts, clear=False)
 
         # build ratio
-        hist.plotratio(
-            num=histogram['pseudodata'].sum("dataset"),
-            denom=histogram[notdata].sum("dataset"),
-            ax=rax,
-            error_opts=data_err_opts,
-            denom_fill_opts={},
-            guide_opts={},
-            unc='num',
-            overflow='over'
-        )
+#        hist.plotratio(
+#            num=histogram['pseudodata'].sum("dataset"),
+#            denom=histogram[notdata].sum("dataset"),
+#            ax=rax,
+#            error_opts=data_err_opts,
+#            denom_fill_opts={},
+#            guide_opts={},
+#            unc='num',
+#            overflow='over'
+#        )
 
 
         for l in ['linear', 'log']:
-            saveFig(fig, ax, rax, plotDir, name, scale=l, shape=False, y_max=y_max)
+            saveFig(fig, ax, None, plotDir, name, scale=l, shape=False, y_max=y_max)
         fig.clear()
-        rax.clear()
+        #rax.clear()
         #pd_ax.clear()
         ax.clear()
 
@@ -308,7 +329,7 @@ for name in histograms:
     y_max = histogram.sum("dataset").values(overflow='over')[()].max()
     y_over = histogram.sum("dataset").values(overflow='over')[()][-1]
 
-    # get pseudo data
+   # get pseudo data
     bin_values = histogram.axis(axis).centers(overflow=bins[name]['overflow'])
     poisson_means = histogram.sum('dataset').values(overflow=bins[name]['overflow'])[()]
     values = np.repeat(bin_values, np.random.poisson(np.maximum(np.zeros(len(poisson_means)), poisson_means)))
@@ -329,29 +350,29 @@ for name in histograms:
     import re
     notdata = re.compile('(?!pseudodata)')
 
-    fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
+    fig, (ax) = plt.subplots(1,figsize=(7,7)) #, gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
 
     # get axes
     hist.plot1d(histogram[notdata],overlay="dataset", ax=ax, stack=True, overflow=bins[name]['overflow'], clear=False, line_opts=None, fill_opts=fill_opts, error_opts=error_opts, order=['tW_scattering', 'TTX', 'TTW','ttbar','wjets']) #error_opts??
     hist.plot1d(histogram['pseudodata'], overlay="dataset", ax=ax, overflow=bins[name]['overflow'], error_opts=data_err_opts, clear=False)
 
     # build ratio
-    hist.plotratio(
-        num=histogram['pseudodata'].sum("dataset"),
-        denom=histogram[notdata].sum("dataset"),
-        ax=rax,
-        error_opts=data_err_opts,
-        denom_fill_opts={},
-        guide_opts={},
-        unc='num',
-        overflow=bins[name]['overflow']
-    )
+#    hist.plotratio(
+#        num=histogram['pseudodata'].sum("dataset"),
+#        denom=histogram[notdata].sum("dataset"),
+#        ax=rax,
+#        error_opts=data_err_opts,
+#        denom_fill_opts={},
+#        guide_opts={},
+#        unc='num',
+#        overflow=bins[name]['overflow']
+#    )
 
 
     for l in ['linear', 'log']:
-        saveFig(fig, ax, rax, plotDir, name, scale=l, shape=False, y_max=y_max)
+        saveFig(fig, ax, None, plotDir, name, scale=l, shape=False, y_max=y_max)
     fig.clear()
-    rax.clear()
+    #rax.clear()
     ax.clear()
 
     
