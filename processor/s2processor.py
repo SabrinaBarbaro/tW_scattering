@@ -72,8 +72,6 @@ class exampleProcessor(processor.ProcessorABC):
             'b_debug' :          hist.Hist("Counts", dataset_axis, multiplicity_axis),
 
             'light_pair_mass':  hist.Hist("Counts", dataset_axis, mass_axis),
-            #'lep_b_mass':       hist.Hist("Counts", dataset_axis, mass_axis),
-            #'lep_light_mass':   hist.Hist("Counts", dataset_axis, mass_axis),
             'light_pair_pt':     hist.Hist("Counts", dataset_axis, pt_axis),
             'lep_b_pt':         hist.Hist("Counts", dataset_axis, pt_axis),
             'lep_light_pt':     hist.Hist("Counts", dataset_axis, pt_axis),
@@ -93,6 +91,11 @@ class exampleProcessor(processor.ProcessorABC):
             'HT': hist.Hist("Counts", dataset_axis, ht_axis),
             'ST': hist.Hist("Counts", dataset_axis, ht_axis),
 
+            'central3':  hist.Hist("Counts", dataset_axis, eta_axis),
+            'deltaEtaJJMin':  hist.Hist("Counts", dataset_axis, eta_axis),
+            "lep_mass" :   hist.Hist("Counts", dataset_axis, mass_axis),
+            'deltaEtalj':  hist.Hist("Counts", dataset_axis, eta_axis),
+
             'pt_lead_light':  hist.Hist("Counts", dataset_axis, pt_axis),
             'eta_lead_light': hist.Hist("Counts", dataset_axis, eta_axis),
             'phi_lead_light': hist.Hist("Counts", dataset_axis, phi_axis),
@@ -105,6 +108,7 @@ class exampleProcessor(processor.ProcessorABC):
             'totalEvents':      processor.defaultdict_accumulator(int),
 
         })
+        tW_scattering= ["tW_scattering"]*10000
 
     @property
     def accumulator(self):
@@ -221,6 +225,14 @@ class exampleProcessor(processor.ProcessorABC):
 
         leading_lepton = Lepton[Lepton.pt.argmax()]
         mt_lep_met = mt(leading_lepton.pt, leading_lepton.phi, met_pt, met_phi)
+        lightCentral = Jet[(Jet['goodjet']==1) & (Jet['bjet']==0) & (abs(Jet.eta)<2.4) & (Jet.pt>30)]
+        fw = nonb[abs(nonb.eta).argmax()]
+        jj = fw.cross(nonb)
+        deltaEta = abs(fw.eta - jj[jj.mass.argmax()].i1.eta)
+        deltaEtaJJMin = ((deltaEta>2).any())
+
+        deltalj = Lepton.eta.sum() - Jet.eta.sum()
+
         
         b_selection = df["nGoodBTag"]>=1
         singlelep = ((df['nLepton']==1) & (df['nVetoLepton']==1))
@@ -228,9 +240,10 @@ class exampleProcessor(processor.ProcessorABC):
         eta_lead =((lead_light.eta>-.5).counts>0) & ((lead_light.eta<0.5).counts>0)
         MET_cut = df["MET_pt"] >= 40
         MT_cut = df["MT"] >= 30
-        #ht_var = good_jet.pt
         HT_cut = (ht>500)
         ST_cut= (st>600)
+
+        grand_selec = singlelep & b_selection & sevenjets & MET_cut & MT_cut & HT_cut & ST_cut
     
 
         event_selection = (Jet.counts>5) & (b.counts>=2) & (nonb.counts>=4) & (df['nLepton']==1) & (df['nVetoLepton']==1)
@@ -275,7 +288,7 @@ class exampleProcessor(processor.ProcessorABC):
         output['light_pair_mass'].fill(dataset=dataset, mass= light_pair[light_pair_selec].mass.flatten())
 #        output['lep_b_mass'].fill(dataset=dataset, mass= lep_b[lep_b_selec].mass.flatten())
 #        output['lep_light_mass'].fill(dataset=dataset, mass= lep_light.mass.flatten())
-        output['light_pair_pt'].fill(dataset=dataset, pt= light_pair[light_pair_selec].pt.flatten())
+        output['light_pair_pt'].fill(dataset=dataset, pt= light_pair[grand_selec].pt.flatten())
         output['lep_b_pt'].fill(dataset=dataset, pt= lep_b[lep_b_selec].pt.flatten())
         output['lep_light_pt'].fill(dataset=dataset, pt= lep_light[lep_light_selec].pt.flatten())
 
@@ -287,11 +300,13 @@ class exampleProcessor(processor.ProcessorABC):
         output['pt_lep'].fill(dataset=dataset, pt= Lepton[selection].pt.flatten())
         output['eta_lep'].fill(dataset=dataset, eta= Lepton[selection].eta.flatten())
         output['phi_lep'].fill(dataset=dataset, phi= Lepton[selection].phi.flatten())
-        output['pt_lead_light'].fill(dataset=dataset, pt= lead_light[light_pair_selec].pt.flatten())
-        output['eta_lead_light'].fill(dataset=dataset, eta= lead_light[light_pair_selec].eta.flatten())
-        output['phi_lead_light'].fill(dataset=dataset, phi= lead_light[light_pair_selec].phi.flatten())
+        output['pt_lead_light'].fill(dataset=dataset, pt= lead_light[grand_selec].pt.flatten())
+        output['eta_lead_light'].fill(dataset=dataset, eta= lead_light[grand_selec].eta.flatten())
         output['mt_lep_MET'].fill(dataset=dataset, mass = mt_lep_met[b_selec].flatten())
-
+        output['central3'].fill(dataset=dataset, eta= lightCentral.eta.flatten())
+        output['deltaEtaJJMin'].fill(dataset=dataset, eta= deltaEtaJJMin.flatten())
+        output['deltaEtalj'].fill(dataset=dataset, eta= deltalj.flatten())
+        output['lep_mass'].fill(dataset=dataset, mass= Lepton[selection].mass.flatten())
 
         ### event shape variables - neglect for now
         
@@ -313,7 +328,8 @@ class exampleProcessor(processor.ProcessorABC):
 
 def main():
 
-    overwrite = True
+    overwrite = False
+
 
     # load the config and the cache
     cfg = loadConfig()
@@ -323,7 +339,7 @@ def main():
     from samples import fileset, fileset_small, fileset_1l
 
     # histograms
-    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max", "b_debug", "HT", "ST"] 
+    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max", "b_debug", "HT", "ST", "central3", "deltaEtaJJMin", "lep_mass", "deltaEtalj"] 
 
 
     # initialize cache
@@ -366,7 +382,7 @@ percentoutput = {}
 for process in ['tW_scattering', 'TTX', 'TTW', 'ttbar', 'wjets']:
     percentoutput[process] = {'skim':0,'singlelep':0, 'sevenjets':0 , 'b_selection':0, 'MET_cut':0, 'MT_cut':0, 'HT_cut':0,'ST_cut':0}
     lastnum = output[process]['skim']
-    for select in ['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut']:#, 'ST_cut']:
+    for select in ['skim', 'singlelep', 'sevenjets', 'b_selection', 'MET_cut', 'MT_cut', 'HT_cut', 'ST_cut']:
         thisnum = output[process][select]
         percent = thisnum/lastnum
         percentoutput[process][select] = percent
