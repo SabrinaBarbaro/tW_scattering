@@ -107,8 +107,7 @@ class exampleProcessor(processor.ProcessorABC):
             'diboson':          processor.defaultdict_accumulator(int),
             'totalEvents':      processor.defaultdict_accumulator(int),
 
-        })
-        tW_scattering= ["tW_scattering"]*10000
+        }
 
     @property
     def accumulator(self):
