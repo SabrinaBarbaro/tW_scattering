@@ -272,18 +272,18 @@ class exampleProcessor(processor.ProcessorABC):
         output['mbj_max'].fill(dataset=dataset, mass=bj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mjj_max'].fill(dataset=dataset, mass=jj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlb_min'].fill(dataset=dataset, mass=lb_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['mlb_max'].fill(dataset=dataset, mass=lb_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['mlb_max'].fill(dataset=dataset, mass=lb_pair[grand_selec].mass.max().flatten(), weight=df['weight'][grand_selec]*cfg['lumi'])
         output['mlj_min'].fill(dataset=dataset, mass=lj_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlj_max'].fill(dataset=dataset, mass=lj_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
-        output['HT'].fill(dataset=dataset, ht=ht[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['HT'].fill(dataset=dataset, ht=ht[grand_selec].flatten(), weight=df['weight'][grand_selec]*cfg['lumi'])
         output['ST'].fill(dataset=dataset, ht=st[event_selection].flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
         output['b_debug'].fill(dataset=dataset, multiplicity = b[b_debug_selec].counts.flatten(), weight=df['weight'][b_debug_selec]*cfg['lumi'])
 
         # forward stuff
         output['N_spec'].fill(dataset=dataset, multiplicity=spectator[event_selection].counts, weight=df['weight'][event_selection]*cfg['lumi'])
-        output['pt_spec_max'].fill(dataset=dataset, pt=spectator[event_selection & (spectator.counts>0)].pt.max().flatten(), weight=df['weight'][event_selection & (spectator.counts>0)]*cfg['lumi'])
+        output['pt_spec_max'].fill(dataset=dataset, pt=spectator[grand_selec & (spectator.counts>0)].pt.max().flatten(), weight=df['weight'][grand_selec & (spectator.counts>0)]*cfg['lumi'])
 
         output['light_pair_mass'].fill(dataset=dataset, mass= light_pair[light_pair_selec].mass.flatten())
 #        output['lep_b_mass'].fill(dataset=dataset, mass= lep_b[lep_b_selec].mass.flatten())
@@ -352,7 +352,7 @@ def main():
 
     else:
         # Run the processor
-        output = processor.run_uproot_job(fileset_small, #maybe the Event scale is for fileset_1l
+        output = processor.run_uproot_job(fileset_1l, #maybe the Event scale is for fileset_1l
                                       treename='Events',
                                       processor_instance=exampleProcessor(),
                                       executor=processor.futures_executor,
