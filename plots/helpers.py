@@ -57,12 +57,14 @@ def saveFig( fig, ax, rax, path, name, scale='linear', shape=False, y_max=-1 ):
 
 colors = {
     'tW_scattering': '#FF595E',
+    #'tW_scattering': '#000000',
     'TTW': '#8AC926',
     'TTX': '#FFCA3A',
     'TTZ': '#FFCA3A',
     'ttbar': '#1982C4',
     'wjets': '#6A4C93',
     'diboson': '#525B76',
+    'DY': '#6A4C93',
 }
 '''
 other colors (sets from coolers.com):
@@ -78,6 +80,7 @@ my_labels = {
     'TTZ': r'$t\bar{t}$Z',
     'ttbar': r'$t\bar{t}$+jets',
     'wjets': 'W+jets',
+    'DY': 'Drell-Yan',
     'diboson': 'VV/VVV',
     'pseudodata': 'Pseudo-data',
     'uncertainty': 'Uncertainty',
@@ -91,6 +94,22 @@ data_err_opts = {
     'elinewidth': 1,
 }
 
+signal_err_opts = {
+    'linestyle':'-',
+    'color':'crimson',
+    'elinewidth': 1,
+}
+
+#signal_err_opts = {
+#    'linestyle': '-',
+#    'marker': '.',
+#    'markersize': 0.,
+#    'color': 'k',
+#    'elinewidth': 1,
+#    'linewidth': 2,
+#}
+
+
 error_opts = {
     'label': 'uncertainty',
     'hatch': '///',
@@ -103,3 +122,12 @@ fill_opts = {
     'edgecolor': (0,0,0,0.3),
     'alpha': 1.0
 }
+
+signal_fill_opts = {
+    'linewidth': 2,
+    'linecolor': 'k',
+    'edgecolor': (1,1,1,0.0),
+    'facecolor': 'none',
+    'alpha': 0.1
+}
+

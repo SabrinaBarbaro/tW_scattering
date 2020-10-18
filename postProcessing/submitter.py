@@ -30,6 +30,8 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--version', action='store', default=None, help="Define a new version number")
 argParser.add_argument('--newVersion', action='store_true', default=None, help="Create a version and tag automatically?")
 argParser.add_argument('--dryRun', action='store_true', default=None, help="Don't submit?")
+argParser.add_argument('--small', action='store_true', default=None, help="Only submit first two samples?")
+argParser.add_argument('--only', action='store', default=None, help="Just select one sample")
 args = argParser.parse_args()
 
 version = str(cfg['meta']['version'])
@@ -75,7 +77,16 @@ merge_tasks = []
 #samples = {'/hadoop/cms/store/user/dspitzba/tW_scattering/tW_scattering/nanoAOD/': samples['/hadoop/cms/store/user/dspitzba/tW_scattering/tW_scattering/nanoAOD/']}
 
 #if True:
-for s in samples.keys():
+
+sample_list = samples.keys() if not args.small else samples.keys()[:2]
+
+sample_list = [ x for x in samples.keys() if args.only in x ] #
+
+print ("Will run over the following samples:")
+print (sample_list)
+print ()
+
+for s in sample_list:
     if samples[s]['path'] is not None:
         sample = DirectorySample(dataset = samples[s]['name'], location = samples[s]['path'])
     else:
