@@ -51,7 +51,8 @@ class exampleProcessor(processor.ProcessorABC):
         eta_axis            = hist.Bin("eta",       r"$\eta$", 60, -5.5, 5.5)
         multiplicity_axis   = hist.Bin("multiplicity",         r"N", 20, -0.5, 19.5)
         norm_axis            = hist.Bin("norm",         r"N", 25, 0, 1)
-        
+        ugh_axis   = hist.Bin("ugh",         r"mu+mu+ mu+e+ e+e+ mu-mu- mu-e- e-e-", 20, -0.5, 19.5)
+ 
         self._accumulator = processor.dict_accumulator({
             "MET_pt" :          hist.Hist("Counts", dataset_axis, pt_axis),
             "pt_spec_max" :          hist.Hist("Counts", dataset_axis, pt_axis),
@@ -85,6 +86,8 @@ class exampleProcessor(processor.ProcessorABC):
             'tW_scattering':    processor.defaultdict_accumulator(int),
             'totalEvents':      processor.defaultdict_accumulator(int),
             'DY':               processor.defaultdict_accumulator(int),
+            'AttemptOne':       hist.Hist("Counts", dataset_axis, ugh_axis),
+            'trailing_lep_pt':  hist.Hist("Counts", dataset_axis, pt_axis),
         })
 
     @property
@@ -151,7 +154,8 @@ class exampleProcessor(processor.ProcessorABC):
         ## how to get leading lepton easily? Do I actually care?
         leading_muon = muon[muon.pt.argmax()]
         leading_electron = electron[electron.pt.argmax()]
-      
+        
+                      
         ## MET
         met_pt  = df["MET_pt"]
         met_phi = df["MET_phi"]
@@ -169,7 +173,14 @@ class exampleProcessor(processor.ProcessorABC):
         ## this is my personal forward jet definition, can be used later
         spectator = jet[(abs(jet.eta)>2.0) & (abs(jet.eta)<4.7) & (jet.pt>25) & (jet['puId']>=7) & (jet['jetId']>=6)] # 40 GeV seemed good. let's try going lower
         leading_spectator = spectator[spectator.pt.argmax()]        
- 
+
+        neg_SS_dimuon = ( dimuon[(dimuon.i0.charge<0 * dimuon.i1.charge)>0].counts>0 ) 
+        neg_SS_diele = ( dielectron[(dielectron.i0.charge<0 * dielectron.i1.charge)>0].counts>0 )
+        neg_SS_dilep = ( dilepton[(dilepton.i0.charge<0 * dilepton.i1.charge)>0].counts>0 )
+        pos_SS_dimuon = ( dimuon[(dimuon.i0.charge>0 * dimuon.i1.charge)>0].counts>0 )
+        pos_SS_diele = ( dielectron[(dielectron.i0.charge>0 * dielectron.i1.charge)>0].counts>0 )
+        pos_SS_dilep = ( dilepton[(dilepton.i0.charge>0 * dilepton.i1.charge)>0].counts>0 )
+
         ## updated
         dilep      = ((electron.counts + muon.counts)==2)
         lepveto    = ((vetoelectron.counts + vetomuon.counts)==2)
@@ -182,7 +193,8 @@ class exampleProcessor(processor.ProcessorABC):
         fwdJet50   = ((leading_spectator.pt>50).any())
         ptl100     = (((leading_muon.pt>100).any()) | ((leading_electron.pt>100).any()))
         eta_fwd    = ((abs(light.eta)>1.75).any())
-
+        
+                
         
         ## work on the cutflow
         output['totalEvents']['all'] += len(df['weight'])
@@ -243,6 +255,14 @@ class exampleProcessor(processor.ProcessorABC):
         output['mlj_max'].fill(dataset=dataset, mass=lepton_jet_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlj_min'].fill(dataset=dataset, mass=lepton_jet_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
+        output['AttemptOne'].fill(dataset=dataset, ugh=(pos_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['AttemptOne'].fill(dataset=dataset, ugh=2*(pos_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['AttemptOne'].fill(dataset=dataset, ugh=3*(pos_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['AttemptOne'].fill(dataset=dataset, ugh=4*(neg_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['AttemptOne'].fill(dataset=dataset, ugh=5*(neg_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['AttemptOne'].fill(dataset=dataset, ugh=6*(neg_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+
+        output['trailing_lep_pt'].fill(dataset=dataset, pt=lepton[event_selection].pt.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi']) 
 
         return output
 
@@ -264,7 +284,7 @@ def main():
     # histograms
     histograms = []
     histograms += ['N_ele', 'N_mu', 'N_diele', 'N_dimu', 'MET_pt', 'pt_spec_max', 'MT', 'HT', 'ST', 'mbj_max', 'mjj_max', 'mlb_max', 'mlb_min', 'mlj_max', 'mlj_min', 'N_b', 'N_jet', 'N_spec']
-    
+    histograms += ['AttemptOne', 'trailing_lep_pt']    
     # initialize cache
     cache = dir_archive(os.path.join(os.path.expandvars(cfg['caches']['base']), cfg['caches']['singleLep']), serialized=True)
     if not overwrite:
