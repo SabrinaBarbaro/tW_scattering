@@ -87,7 +87,7 @@ class exampleProcessor(processor.ProcessorABC):
             'tW_scattering':    processor.defaultdict_accumulator(int),
             'totalEvents':      processor.defaultdict_accumulator(int),
             'DY':               processor.defaultdict_accumulator(int),
-            'lepton_flavor?':       hist.Hist("Counts", dataset_axis, multiplicity_axis),
+            'lepton_flavor':       hist.Hist("Counts", dataset_axis, multiplicity_axis),
             'trailing_lep_pt':  hist.Hist("Counts", dataset_axis, pt_axis),
         })
 
@@ -258,12 +258,12 @@ class exampleProcessor(processor.ProcessorABC):
         output['mlj_max'].fill(dataset=dataset, mass=lepton_jet_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlj_min'].fill(dataset=dataset, mass=lepton_jet_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
-        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=2*(pos_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=3*(pos_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=4*(pos_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=5*(neg_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=6*(neg_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=7*(neg_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor'].fill(dataset=dataset, multiplicity=2*(pos_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor'].fill(dataset=dataset, multiplicity=3*(pos_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor'].fill(dataset=dataset, multiplicity=4*(pos_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor'].fill(dataset=dataset, multiplicity=5*(neg_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor'].fill(dataset=dataset, multiplicity=6*(neg_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor'].fill(dataset=dataset, multiplicity=7*(neg_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
 
         output['trailing_lep_pt'].fill(dataset=dataset, pt=lepton[event_selection].pt.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi']) 
 
@@ -287,7 +287,7 @@ def main():
     # histograms
     histograms = []
     histograms += ['N_ele', 'N_mu', 'N_diele', 'N_dimu', 'MET_pt', 'pt_spec_max', 'MT', 'HT', 'ST', 'mbj_max', 'mjj_max', 'mlb_max', 'mlb_min', 'mlj_max', 'mlj_min', 'N_b', 'N_jet', 'N_spec']
-    histograms += ['lepton_flavor?', 'trailing_lep_pt']    
+    histograms += ['lepton_flavor', 'trailing_lep_pt']    
     # initialize cache
     cache = dir_archive(os.path.join(os.path.expandvars(cfg['caches']['base']), cfg['caches']['singleLep']), serialized=True)
     if not overwrite:
@@ -298,14 +298,14 @@ def main():
 
     else:
         # Run the processor
-        output = processor.run_uproot_job(fileset,
+        output = processor.run_uproot_job(fileset_small,
                                       treename='Events',
                                       processor_instance=exampleProcessor(),
                                       executor=processor.futures_executor,
                                       executor_args={'workers': 18, 'function_args': {'flatten': False}},
                                       chunksize=100000,
                                      )
-        cache['fileset']        = fileset
+        cache['fileset']        = fileset_small
         cache['cfg']            = cfg
         cache['histograms']     = histograms
         cache['simple_output']  = output

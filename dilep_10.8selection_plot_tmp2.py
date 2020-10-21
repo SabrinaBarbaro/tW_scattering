@@ -220,7 +220,7 @@ for name in histograms:
         axis = 'ht'
         new_ht_bins = hist.Bin("ht", r"$H_{T}$ (GeV)", 30, 0, 3000)
         histogram = histogram.rebin('ht', new_ht_bins)
-    elif name == 'lepton_flavor?':
+    elif name == 'lepton_flavor':
         axis = 'multiplicity'
         new_n_bins = hist.Bin("multiplicity",         r"mu+mu+ mu+e+ e+e+ mu-mu- mu-e- e-e-", 20, -0.5, 19.5)
         histogram = histogram.rebin('multiplicity', new_n_bins)
@@ -294,4 +294,4 @@ for name in histograms:
         fig.clear()
         ax.clear()
 
-df = getCutFlowTable(output, processes=['tW_scattering', 'ttbar', 'diboson', 'TTW', 'TTX', 'DY'], lines=['skim','dilep','fourJet','twoBTag', 'ss', 'met
+df = getCutFlowTable(output, processes=['tW_scattering', 'ttbar', 'diboson', 'TTW', 'TTX', 'DY'], lines=['skim','dilep','fourJet','twoBTag', 'ss', 'met35'])
