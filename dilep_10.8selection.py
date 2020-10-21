@@ -1,4 +1,5 @@
-'''simple processor using coffea.
+'''THIS IS THE ONE THAT WORKS HAYDEN AS OF 10/19!!!!!
+simple processor using coffea.
 [x] weights
 [ ] Missing pieces: appropriate sample handling
 [x] Accumulator caching
@@ -51,7 +52,7 @@ class exampleProcessor(processor.ProcessorABC):
         eta_axis            = hist.Bin("eta",       r"$\eta$", 60, -5.5, 5.5)
         multiplicity_axis   = hist.Bin("multiplicity",         r"N", 20, -0.5, 19.5)
         norm_axis            = hist.Bin("norm",         r"N", 25, 0, 1)
-        ugh_axis   = hist.Bin("ugh",         r"mu+mu+ mu+e+ e+e+ mu-mu- mu-e- e-e-", 20, -0.5, 19.5)
+       
  
         self._accumulator = processor.dict_accumulator({
             "MET_pt" :          hist.Hist("Counts", dataset_axis, pt_axis),
@@ -86,7 +87,7 @@ class exampleProcessor(processor.ProcessorABC):
             'tW_scattering':    processor.defaultdict_accumulator(int),
             'totalEvents':      processor.defaultdict_accumulator(int),
             'DY':               processor.defaultdict_accumulator(int),
-            'AttemptOne':       hist.Hist("Counts", dataset_axis, ugh_axis),
+            'lepton_flavor?':       hist.Hist("Counts", dataset_axis, multiplicity_axis),
             'trailing_lep_pt':  hist.Hist("Counts", dataset_axis, pt_axis),
         })
 
@@ -248,6 +249,8 @@ class exampleProcessor(processor.ProcessorABC):
         jet_pair = light.choose(2)
         output['mbj_max'].fill(dataset=dataset, mass=b_nonb_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mjj_max'].fill(dataset=dataset, mass=jet_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
+
+
         lepton_bjet_pair = lepton.cross(btag)
         output['mlb_max'].fill(dataset=dataset, mass=lepton_bjet_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlb_min'].fill(dataset=dataset, mass=lepton_bjet_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
@@ -255,12 +258,12 @@ class exampleProcessor(processor.ProcessorABC):
         output['mlj_max'].fill(dataset=dataset, mass=lepton_jet_pair[event_selection].mass.max().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
         output['mlj_min'].fill(dataset=dataset, mass=lepton_jet_pair[event_selection].mass.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi'])
 
-        output['AttemptOne'].fill(dataset=dataset, ugh=(pos_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['AttemptOne'].fill(dataset=dataset, ugh=2*(pos_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['AttemptOne'].fill(dataset=dataset, ugh=3*(pos_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['AttemptOne'].fill(dataset=dataset, ugh=4*(neg_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['AttemptOne'].fill(dataset=dataset, ugh=5*(neg_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
-        output['AttemptOne'].fill(dataset=dataset, ugh=6*(neg_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=2*(pos_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=3*(pos_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=4*(pos_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=5*(neg_SS_dimuon[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=6*(neg_SS_dilep[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
+        output['lepton_flavor?'].fill(dataset=dataset, multiplicity=7*(neg_SS_diele[event_selection]), weight=df['weight'][event_selection]*cfg['lumi'])
 
         output['trailing_lep_pt'].fill(dataset=dataset, pt=lepton[event_selection].pt.min().flatten(), weight=df['weight'][event_selection]*cfg['lumi']) 
 
@@ -284,7 +287,7 @@ def main():
     # histograms
     histograms = []
     histograms += ['N_ele', 'N_mu', 'N_diele', 'N_dimu', 'MET_pt', 'pt_spec_max', 'MT', 'HT', 'ST', 'mbj_max', 'mjj_max', 'mlb_max', 'mlb_min', 'mlj_max', 'mlj_min', 'N_b', 'N_jet', 'N_spec']
-    histograms += ['AttemptOne', 'trailing_lep_pt']    
+    histograms += ['lepton_flavor?', 'trailing_lep_pt']    
     # initialize cache
     cache = dir_archive(os.path.join(os.path.expandvars(cfg['caches']['base']), cfg['caches']['singleLep']), serialized=True)
     if not overwrite:
