@@ -243,6 +243,11 @@ for name in histograms:
         axis = 'mass'
         new_mass_bins = hist.Bin('mass', r'$M(b, light) \ (GeV)$', 25, 0, 1000)
         histogram = histogram.rebin('mass', hist.Bin('mass', r'$M(b, light) \ (GeV)$', 25, 0, 1000))
+    elif name == 'R':
+        # rebin
+        axis = 'multiplicity'
+        new_n_bins = hist.Bin('multiplicity', r'$N_{jet, fwd}$', 15, -0.5, 14.5)
+        histogram = histogram.rebin('multiplicity', new_n_bins)
 #    elif name == 'central3':
 #        # rebin
 #        axis = 'eta'
@@ -299,7 +304,8 @@ for name in histograms:
         #hist.plot1d(histogram['pseudodata'], overlay="dataset", ax=ax, overflow='over', error_opts=data_err_opts, clear=False)
         scales = { 'tW_scattering': 1000 }
         histogram.scale(scales, axis='dataset')
-        hist.plot1d(histogram['tW_scattering'], overlay="dataset", ax=ax, overflow=bins[name]['overflow'], line_opts={'linewidth':3}, clear=False)
+#        hist.plot1d(histogram['tW_scattering'], overlay="dataset", ax=ax, overflow=bins[name]['overflow'], line_opts={'linewidth':3}, clear=False)        
+        hist.plot1d(histogram['tW_scattering'], overlay="dataset", ax=ax, overflow='over', line_opts={'linewidth':3}, clear=False)
 
         # build ratio
 #        hist.plotratio(

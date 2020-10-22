@@ -95,6 +95,7 @@ class exampleProcessor(processor.ProcessorABC):
             'deltaEtaJJMin':  hist.Hist("Counts", dataset_axis, eta_axis),
             "lep_mass" :   hist.Hist("Counts", dataset_axis, mass_axis),
             'deltaEtalj':  hist.Hist("Counts", dataset_axis, eta_axis),
+            'R':          hist.Hist("Counts", dataset_axis, multiplicity_axis), 
 
             'pt_lead_light':  hist.Hist("Counts", dataset_axis, pt_axis),
             'eta_lead_light': hist.Hist("Counts", dataset_axis, eta_axis),
@@ -106,8 +107,7 @@ class exampleProcessor(processor.ProcessorABC):
             'wjets':            processor.defaultdict_accumulator(int),
             'diboson':          processor.defaultdict_accumulator(int),
             'totalEvents':      processor.defaultdict_accumulator(int),
-
-        }
+            })
 
     @property
     def accumulator(self):
@@ -213,6 +213,8 @@ class exampleProcessor(processor.ProcessorABC):
         ht = Jet[Jet['goodjet']==1].pt.sum()
         st = Jet[Jet['goodjet']==1].pt.sum() + Lepton.pt.sum() + met_pt    
         
+        R= ((Lepton.eta.argmax()-Jet.eta.argmax())**2 + (Lepton.phi.argmax()-Jet.phi.argmax()**2))**0.5  #USE ARGMAX INSTEAD
+        
         lead_light = nonb[nonb.pt.argmax()]
         b_debug_selec = ((Jet.counts>7) & (df['nLepton']==1) & (df['nVetoLepton']==1))
 
@@ -235,6 +237,7 @@ class exampleProcessor(processor.ProcessorABC):
         
         b_selection = df["nGoodBTag"]>=1
         singlelep = ((df['nLepton']==1) & (df['nVetoLepton']==1))
+        dilep =  ((df['nLepton']==2))
         sevenjets = (Jet.counts > 7)
         eta_lead =((lead_light.eta>-.5).counts>0) & ((lead_light.eta<0.5).counts>0)
         MET_cut = df["MET_pt"] >= 40
@@ -305,6 +308,7 @@ class exampleProcessor(processor.ProcessorABC):
         output['central3'].fill(dataset=dataset, eta= lightCentral.eta.flatten())
         output['deltaEtaJJMin'].fill(dataset=dataset, eta= deltaEtaJJMin.flatten())
         output['deltaEtalj'].fill(dataset=dataset, eta= deltalj.flatten())
+        output['R'].fill(dataset=dataset, multiplicity = R[dilep].flatten(), weight=df['weight'][dilep]*cfg['lumi'])
         output['lep_mass'].fill(dataset=dataset, mass= Lepton[selection].mass.flatten())
 
         ### event shape variables - neglect for now
@@ -327,7 +331,7 @@ class exampleProcessor(processor.ProcessorABC):
 
 def main():
 
-    overwrite = False
+    overwrite = True
 
 
     # load the config and the cache
@@ -338,7 +342,7 @@ def main():
     from samples import fileset, fileset_small, fileset_1l
 
     # histograms
-    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max", "b_debug", "HT", "ST", "central3", "deltaEtaJJMin", "lep_mass", "deltaEtalj"] 
+    histograms = ["MET_pt", "N_b", "N_jet", "MT", "b_nonb_massmax", "N_spec", "pt_spec_max", "light_pair_mass", "light_pair_pt", "lep_light_pt", "lep_b_pt","S_T", "H_T", "pt_b", "eta_b", "phi_b", "pt_lep", "eta_lep", "phi_lep", "pt_lead_light", "eta_lead_light", "phi_lead_light", "mt_lep_MET", "mbj_max", "mjj_max", "mlb_min", "mlb_max", "mlj_min", "mlj_max", "b_debug", "HT", "ST", "central3", "deltaEtaJJMin", "lep_mass","R", "deltaEtalj"] 
 
 
     # initialize cache
@@ -351,7 +355,7 @@ def main():
 
     else:
         # Run the processor
-        output = processor.run_uproot_job(fileset_1l, #maybe the Event scale is for fileset_1l
+        output = processor.run_uproot_job(fileset_small, #maybe the Event scale is for fileset_1l
                                       treename='Events',
                                       processor_instance=exampleProcessor(),
                                       executor=processor.futures_executor,
