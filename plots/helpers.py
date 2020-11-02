@@ -2,7 +2,7 @@ import os
 import matplotlib.pyplot as plt
 from Tools.helpers import finalizePlotDir
 
-def saveFig( fig, ax, rax, path, name, scale='linear', shape=False, y_max=-1 ):
+def saveFig( fig, ax, path, name, scale='linear', shape=False, y_max=-1 ):    #removing rax, ax, rax, path
     outdir = os.path.join(path,scale)
     finalizePlotDir(outdir)
     ax.set_yscale(scale)

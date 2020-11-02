@@ -47,8 +47,8 @@ class exampleProcessor(processor.ProcessorABC):
         eta_axis            = hist.Bin("eta",       r"$\eta$", 60, -5.5, 5.5)
         phi_axis            = hist.Bin("phi",       r"$\eta$", 60, -5.5, 5.5)
         multiplicity_axis   = hist.Bin("multiplicity",         r"N", 20, -0.5, 19.5)
-        lep_array = ['die', 'dimu', 'mue']
-        lep_axis = hist.Bin("lep", "lep flavour?", 3, lep_array)
+#        lep_array = ['die', 'dimu', 'mue']
+ #       lep_axis = hist.Bin("lep", "lep flavour?", 3, lep_array)
 
         self._accumulator = processor.dict_accumulator({
             "MET_pt" :          hist.Hist("Counts", dataset_axis, pt_axis),
@@ -70,7 +70,7 @@ class exampleProcessor(processor.ProcessorABC):
             "mlb_min" :          hist.Hist("Counts", dataset_axis, mass_axis),
             "mlj_max" :          hist.Hist("Counts", dataset_axis, mass_axis),
             "mlj_min" :          hist.Hist("Counts", dataset_axis, mass_axis),
-            "muoeee":            hist.Hist("Counts", dataset_axis, lep_axis),
+            #"muoeee":            hist.Hist("Counts", dataset_axis, lep_axis),
 
             'b_debug' :          hist.Hist("Counts", dataset_axis, multiplicity_axis),
 
